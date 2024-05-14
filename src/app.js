@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
-const { log } = require('console');
 const readJsonData = require('./utils/fs/readJsonData');
+const writeJsonData = require('./utils/fs/writeJsonData');
+const findNextId = require('./utils/fs/findNextId');
 
 const app = express();
 
@@ -26,6 +27,17 @@ app.get('/movies/:id', async (req, res) => {
     }
 
     res.status(200).json(findMovie);
+});
+
+app.post('/movies', async (req, res) => {
+    const movies = await readJsonData(PATH);
+    const movieContent = req.body;
+    const nextId = findNextId(movies);
+    const newMovie = { id: nextId, ...movieContent };
+    const newArray = [...movies, newMovie];
+    await writeJsonData(PATH, newArray);
+
+    res.status(201).json(newMovie);
 });
 
 module.exports = app;
