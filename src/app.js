@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const { write } = require('fs');
 const readJsonData = require('./utils/fs/readJsonData');
 const writeJsonData = require('./utils/fs/writeJsonData');
 const findNextId = require('./utils/fs/findNextId');
@@ -38,6 +39,29 @@ app.post('/movies', async (req, res) => {
     await writeJsonData(PATH, newArray);
 
     res.status(201).json(newMovie);
+});
+
+app.put('/movies/:id', async (req, res) => {
+    const { id } = req.params;
+    const movieContent = req.body;
+    const movies = await readJsonData(PATH);
+    const newContent = movies.map((movie) => {
+        if (movie.id === Number(id)) return { id: Number(id), ...movieContent };
+        return movie;
+    });
+
+    await writeJsonData(PATH, newContent);
+
+    res.status(200).json({ id: +id, ...movieContent });
+});
+
+app.delete('/movies/:id', async (req, res) => {
+    const { id } = req.params;
+    const movies = await readJsonData(PATH);
+    const newArray = movies.filter((movie) => movie.id !== +id);
+    await writeJsonData(PATH, newArray);
+
+    res.status(200).json({ message: 'Filme deletado com sucesso' });
 });
 
 module.exports = app;
